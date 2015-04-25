@@ -1,4 +1,4 @@
-package com.roblayton.spray.server
+package com.roblayton.spray
 
 import akka.actor.ActorSystem
 import spray.routing.SimpleRoutingApp
@@ -13,25 +13,15 @@ object Main extends App with SimpleRoutingApp {
 
   var fragments = Fragment.fragments
 
-  def getJson(route: Route): Route = {
-    get {
-      respondWithMediaType(MediaTypes.`application/json`) {
-        route
-      }
-    }
-  }
-
-  lazy val helloRoute = get {
-    path("hello") {
-      complete {
-        "Hello World!"
-      }
-    }
-  }
-
   startServer(interface = "localhost", port = 8080) {
-    helloRoute ~
-    getJson {
+    get {
+      path("hello") {
+        complete {
+          "Hello World!"
+        }
+      }
+    } ~
+    get {
       path("fragments") {
         respondWithMediaType(MediaTypes.`application/json`) {
           complete {
@@ -48,7 +38,7 @@ object Main extends App with SimpleRoutingApp {
       }
     } ~
     post {
-      path("fragment" / "add") {
+      path("fragment") {
         parameters("name"?, "kind"?, "weight".as[Double]) { (name, kind, weight) =>
           val newFragment = MineralFragment(
             name.getOrElse("mineral"),
