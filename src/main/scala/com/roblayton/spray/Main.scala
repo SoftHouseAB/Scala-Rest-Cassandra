@@ -5,9 +5,6 @@ import spray.routing.SimpleRoutingApp
 import spray.routing.Route
 import spray.http.MediaTypes
 
-import com.roblayton.spray.Fragment
-import com.roblayton.spray.MineralFragment
-
 object Main extends App with SimpleRoutingApp {
   implicit var actorSystem = ActorSystem()
 
