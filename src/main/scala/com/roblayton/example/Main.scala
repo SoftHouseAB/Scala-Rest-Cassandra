@@ -5,10 +5,17 @@ import akka.actor.ActorSystem
 import spray.routing.SimpleRoutingApp
 import spray.routing.Route
 import spray.http.MediaTypes
+import spray.httpx.Json4sSupport
+
+import org.json4s.Formats
+import org.json4s.JsonAST.JObject
+import org.json4s.DefaultFormats
+import org.json4s.native.Serialization.{ read, write, writePretty }
 
 import com.roblayton.example.config.Configuration
 
-object Main extends App with SimpleRoutingApp with Configuration {
+object Main extends App with SimpleRoutingApp with Configuration with Json4sSupport {
+  implicit def json4sFormats: Formats = DefaultFormats
   implicit var actorSystem = ActorSystem()
 
   var fragments = Fragment.fragments
@@ -25,28 +32,23 @@ object Main extends App with SimpleRoutingApp with Configuration {
       path("fragments") {
         respondWithMediaType(MediaTypes.`application/json`) {
           complete {
-            Fragment.toJson(fragments)
+            fragments
           }
         }
       }
     } ~
     get {
-      path("fragment" / IntNumber / "details") { index =>
+      path("fragment" / IntNumber) { index =>
         complete {
-          Fragment.toJson(fragments(index))
+          fragments(index)
         }
       }
     } ~
     post {
       path("fragment") {
-        parameters("name"?, "kind"?, "weight".as[Double]) { (name, kind, weight) =>
-          val newFragment = MineralFragment(
-            name.getOrElse("mineral"),
-            kind.getOrElse("Mineral"),
-            weight)
-
-          fragments = newFragment :: fragments
-
+        entity(as[JObject]) { fragmentObj =>
+          val fragment = fragmentObj.extract[MineralFragment]
+          fragments = fragment :: fragments
           complete {
             "OK"
           }
