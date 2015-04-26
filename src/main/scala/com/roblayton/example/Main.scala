@@ -15,8 +15,11 @@ import org.json4s.native.Serialization.{ read, write, writePretty }
 import com.roblayton.example.config.Configuration
 
 object Main extends App with SimpleRoutingApp with Configuration with Json4sSupport {
-  implicit def json4sFormats: Formats = DefaultFormats
+
   implicit var actorSystem = ActorSystem()
+
+  // globally override the default format to respond with Json
+  implicit def json4sFormats: Formats = DefaultFormats
 
   var fragments = Fragment.fragments
 
@@ -30,10 +33,8 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
     } ~
     get {
       path("fragments") {
-        respondWithMediaType(MediaTypes.`application/json`) {
-          complete {
-            fragments
-          }
+        complete {
+          fragments
         }
       }
     } ~
