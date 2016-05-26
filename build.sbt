@@ -7,6 +7,7 @@ scalaVersion := "2.11.2"
 resolvers += "spray repo" at "http://repo.spray.io"
 
 val sprayVersion = "1.3.1"
+val cassandraDriverVersion = "3.0.0"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.3.6",
@@ -18,7 +19,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "org.scalatest" %% "scalatest" % "2.2.2" % "test",
-  "org.mockito" % "mockito-all" % "1.9.5" % "test"
+  "org.mockito" % "mockito-all" % "1.9.5" % "test",
+  "com.datastax.cassandra" % "cassandra-driver-core" % cassandraDriverVersion,
+  "io.spray" %%  "spray-json" % "1.3.2"
 )
 
 
