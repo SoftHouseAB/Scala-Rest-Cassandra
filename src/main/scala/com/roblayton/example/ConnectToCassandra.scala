@@ -14,7 +14,8 @@ import DefaultJsonProtocol._
 
 import scala.collection.mutable.HashMap
 
-case class Movies(id:Int, name:String, status:String)
+case class Movies(id:Int, name:String, status:String) extends ConnectToCassandra
+case class Metrics(USERNAME:String, CPU_USAGE:String, VALUE:String, DATE_AND_TIME:String) extends ConnectToCassandra
 
 /*object MyClassJsonProtocol extends DefaultJsonProtocol {
   implicit object MyClassJsonFormat extends JsonFormat[Movies] {
@@ -36,7 +37,7 @@ case class Movies(id:Int, name:String, status:String)
   }
 }*/
 
-class ConnectToCassandra {
+object ConnectToCassandra {
 
   var cluster:Cluster = null
   var session:Session = null
@@ -77,7 +78,7 @@ class ConnectToCassandra {
     }
     finally {
       close()
-      println("Done!")
+      println("Done! demo")
       //println(session)
     }
     return movies
@@ -97,14 +98,13 @@ class ConnectToCassandra {
     }
   }
 
-  def addMetric(jsonMetric:String) = {
-    println(jsonMetric)
+  def addMetric(metric:Metrics) = {
     try {
       val keyspace = "jaibalayya"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-
-      //val cql = "INSERT INTO metrics (cpu, username, value, date) VALUES ("+cpu+",'"+username+"','"+value+"','"+date+"')"
-      //val resultSet = session.execute( cql )
+      val intCpu = metric.CPU_USAGE.toInt
+      val cql = "INSERT INTO metrics (cpu, username, value, date) VALUES ("+intCpu+",'"+metric.USERNAME+"','"+metric.VALUE+"','"+metric.DATE_AND_TIME+"')"
+      val resultSet = session.execute( cql )
     }
     finally {
       close()
@@ -112,7 +112,8 @@ class ConnectToCassandra {
     }
   }
 
-  private implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[Movies])))
+  private implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[ConnectToCassandra])))
   def toJSON(movie: List[Movies]) = Serialization.writePretty(movie)
-
 }
+
+trait ConnectToCassandra
