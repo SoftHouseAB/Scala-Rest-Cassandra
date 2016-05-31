@@ -36,11 +36,15 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
       } ~
       get {
         path("movies") {
-          respondWithMediaType(MediaTypes.`application/json`) {
-            val tempData = ConnectToCassandra.demo()
-            complete {
-              ConnectToCassandra.toJSON(tempData)
-            }
+          complete {
+            ConnectToCassandra.toJSON(ConnectToCassandra.demo())
+          }
+        }
+      } ~
+      get {
+        path("metrics") {
+          complete {
+            ConnectToCassandra.toJSONM(ConnectToCassandra.demoMetrics())
           }
         }
       } ~

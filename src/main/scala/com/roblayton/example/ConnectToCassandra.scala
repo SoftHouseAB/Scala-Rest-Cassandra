@@ -3,6 +3,8 @@ package com.roblayton.example
 /**
   * Created by jaswath on 25-05-2016.
   */
+import java.text.SimpleDateFormat
+
 import com.datastax.driver.core.{Cluster, Session}
 
 import scala.collection.JavaConversions
@@ -15,27 +17,7 @@ import DefaultJsonProtocol._
 import scala.collection.mutable.HashMap
 
 case class Movies(id:Int, name:String, status:String) extends ConnectToCassandra
-case class Metrics(USERNAME:String, CPU_USAGE:String, VALUE:String, DATE_AND_TIME:String) extends ConnectToCassandra
-
-/*object MyClassJsonProtocol extends DefaultJsonProtocol {
-  implicit object MyClassJsonFormat extends JsonFormat[Movies] {
-    override def write(obj: List[Movies]) =
-      JsObject(
-        (obj1 : Movies) = JsObject(Js
-          "id" -> JsNumber(obj1.id),
-          "name" -> JsString(obj1.name),
-          "status" -> JsString(obj1.status)
-        )
-      )
-    override def read(json: JsValue)= {
-      json.asJsObject.getFields("id", "name", "status") match {
-        case Seq(JsNumber(id), JsString(name), JsString(status)) =>
-          Movies(id.toInt, name, status)
-        case _ => throw new DeserializationException("Color expected")
-      }
-    }
-  }
-}*/
+case class Metrics(USERNAME:String, CPU_USAGE:String, VALUE:String, DATE_AND_TIME:String, IP_AD:String) extends ConnectToCassandra
 
 object ConnectToCassandra {
 
@@ -84,6 +66,34 @@ object ConnectToCassandra {
     return movies
   }
 
+  def demoMetrics(): List[Metrics] = {
+    var metrics = List[Metrics]()
+    try {
+      val keyspace = "jaibalayya"
+      val (cluster, session) = setup(keyspace, "localhost", 9042)
+      println(session)
+      val cql = "SELECT * FROM metrics1"
+      val resultSet = session.execute( cql )
+      val itr = JavaConversions.asScalaIterator(resultSet.iterator)
+      itr.foreach( row => {
+        val cpu = row.getInt("cpu").toString
+        val newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm")
+        val date = newDateFormat.format(row.getTimestamp("date")).toString
+        val name = row.getString("username")
+        val value = row.getString("value")
+        val ipad = row.getInet("ipad").toString
+        metrics = metrics ::: List(Metrics(name, cpu, value, date, ipad))
+        //println(s"$idv $firstName $lastName")
+      })
+    }
+    finally {
+      close()
+      println("Done! demo")
+      //println(session)
+    }
+    return metrics
+  }
+
   def addMovie(idd:Int, movieName:String, movieStatus:String) = {
     try {
       val keyspace = "jaibalayya"
@@ -114,6 +124,7 @@ object ConnectToCassandra {
 
   private implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[ConnectToCassandra])))
   def toJSON(movie: List[Movies]) = Serialization.writePretty(movie)
+  def toJSONM(metric:List[Metrics])=Serialization.writePretty(metric)
 }
 
 trait ConnectToCassandra
