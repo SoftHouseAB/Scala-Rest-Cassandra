@@ -44,7 +44,16 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
       get {
         path("metrics") {
           complete {
-            ConnectToCassandra.toJSONM(ConnectToCassandra.demoMetrics())
+            ConnectToCassandra.toJSONM(ConnectToCassandra.getMetrics())
+          }
+        }
+      } ~
+      get {
+        path("metrics") {
+          parameter("ip") { (ip) =>
+            complete {
+              "OK"
+            }
           }
         }
       } ~

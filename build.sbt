@@ -1,8 +1,16 @@
+import AssemblyKeys._
+
+assemblySettings
+
 name := "scala-spray-rest"
 
 version := "1.0"
 
 scalaVersion := "2.11.2"
+
+jarName in assembly := "spray-cassandra.jar"
+
+mainClass in (Compile, assembly) := Some("com.roblayton.spray.Main")
 
 resolvers += "spray repo" at "http://repo.spray.io"
 
@@ -23,5 +31,17 @@ libraryDependencies ++= Seq(
   "com.datastax.cassandra" % "cassandra-driver-core" % cassandraDriverVersion,
   "io.spray" %%  "spray-json" % "1.3.2"
 )
+
+val meta = """META.INF(.)*""".r
+
+mergeStrategy in assembly := {
+  case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+  case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+  case "application.conf"                            => MergeStrategy.concat
+  case meta(_)                                       => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (mergeStrategy in assembly).value
+    oldStrategy(x)
+}
 
 

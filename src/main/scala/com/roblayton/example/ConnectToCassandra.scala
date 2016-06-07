@@ -66,7 +66,7 @@ object ConnectToCassandra {
     return movies
   }
 
-  def demoMetrics(): List[Metrics] = {
+  def getMetrics(): List[Metrics] = {
     var metrics = List[Metrics]()
     try {
       val keyspace = "jaibalayya"
@@ -81,8 +81,36 @@ object ConnectToCassandra {
         val date = newDateFormat.format(row.getTimestamp("date")).toString
         val name = row.getString("username")
         val value = row.getString("value")
-        val ipad = row.getInet("ipad").toString
-        metrics = metrics ::: List(Metrics(name, cpu, value, date, ipad))
+        val ipad = row.getInet("ipad").toString.split("/");
+        metrics = metrics ::: List(Metrics(name, cpu, value, date, ipad(1)))
+        //println(s"$idv $firstName $lastName")
+      })
+    }
+    finally {
+      close()
+      println("Done! demo")
+      //println(session)
+    }
+    return metrics
+  }
+
+  def getMetrics(ipadd:String): List[Metrics] = {
+    var metrics = List[Metrics]()
+    try {
+      val keyspace = "jaibalayya"
+      val (cluster, session) = setup(keyspace, "localhost", 9042)
+      println(session)
+      val cql = "SELECT * FROM metrics1 where ipad ='"+ipadd+"'"
+      val resultSet = session.execute( cql )
+      val itr = JavaConversions.asScalaIterator(resultSet.iterator)
+      itr.foreach( row => {
+        val cpu = row.getInt("cpu").toString
+        val newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm")
+        val date = newDateFormat.format(row.getTimestamp("date")).toString
+        val name = row.getString("username")
+        val value = row.getString("value")
+        val ipad = row.getInet("ipad").toString.split("/");
+        metrics = metrics ::: List(Metrics(name, cpu, value, date, ipad(1)))
         //println(s"$idv $firstName $lastName")
       })
     }
