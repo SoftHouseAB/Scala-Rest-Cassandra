@@ -35,22 +35,6 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
         }
       } ~
       get {
-        path("movies") {
-          complete {
-            ConnectToCassandra.toJSON(ConnectToCassandra.demo())
-          }
-        }
-      } ~
-      get {
-        path("ips") {
-          parameter("ip") { (ip) =>
-            complete {
-                ConnectToCassandra.getIP(ip)
-            }
-          }
-        }
-      } ~
-      get {
         path("metrics") {
           parameter("ip", "sdate", "edate") { (ip, sdate, edate) =>
             complete {
@@ -70,41 +54,6 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
         path("metrics") {
           complete {
             ConnectToCassandra.toJSONM(ConnectToCassandra.getMetrics())
-          }
-        }
-      } ~
-      get {
-        path("fragments") {
-          complete {
-            fragments
-          }
-        }
-      } ~
-      get {
-        path("fragment" / IntNumber) { index =>
-          complete {
-            fragments(index)
-          }
-        }
-      } ~
-      post {
-        path("fragment") {
-          entity(as[JObject]) { fragmentObj =>
-            val fragment = fragmentObj.extract[MineralFragment]
-            fragments = fragment :: fragments
-            complete {
-              "OK"
-            }
-          }
-        }
-      } ~
-      post {
-        path("movies" / "add") {
-          parameters("id".as[Int], "name", "status") { (id, name, status) =>
-            ConnectToCassandra.addMovie(id, name, status)
-            complete {
-              "OK"
-            }
           }
         }
       } ~

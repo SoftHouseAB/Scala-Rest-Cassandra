@@ -43,31 +43,6 @@ object ConnectToCassandra {
     }
   }
 
-  def demo(): List[Movies] = {
-    var movies = List[Movies]()
-    try {
-      val keyspace = "jaibalayya"
-      val (cluster, session) = setup(keyspace, "localhost", 9042)
-      println(session)
-      val cql = "SELECT * FROM movies"
-      val resultSet = session.execute( cql )
-      val itr = JavaConversions.asScalaIterator(resultSet.iterator)
-      itr.foreach( row => {
-        val idv = row.getInt("id")
-        val firstName = row.getString("name")
-        val lastName = row.getString("status")
-        movies = movies ::: List(Movies(idv, firstName, lastName))
-        //println(s"$idv $firstName $lastName")
-      })
-    }
-    finally {
-      close()
-      println("Done! demo movies")
-      //println(session)
-    }
-    return movies
-  }
-
   def getMetrics(): List[Metrics] = {
     var metrics = List[Metrics]()
     try {
@@ -160,20 +135,6 @@ object ConnectToCassandra {
     return multi_metrics
   }
 
-  def addMovie(idd:Int, movieName:String, movieStatus:String) = {
-    try {
-      val keyspace = "jaibalayya"
-      val (cluster, session) = setup(keyspace, "localhost", 9042)
-
-      val cql = "INSERT INTO movies (id, name, status) VALUES ("+idd+",'"+movieName+"','"+movieStatus+"')"
-      val resultSet = session.execute( cql )
-    }
-    finally {
-      close()
-      println("Done!")
-    }
-  }
-
   def addMetric(metric:Metrics) = {
     try {
       val keyspace = "jaibalayya"
@@ -189,7 +150,6 @@ object ConnectToCassandra {
   }
 
   private implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[ConnectToCassandra])))
-  def toJSON(movie: List[Movies]) = Serialization.writePretty(movie)
   def toJSONM(metric:List[Metrics])=Serialization.writePretty(metric)
   def toJSOND(metric:List[Devices])=Serialization.writePretty(metric)
   def toJSONMM(metric:List[Multi_Metrics])=Serialization.writePretty(metric)
