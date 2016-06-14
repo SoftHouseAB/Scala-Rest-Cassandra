@@ -18,6 +18,8 @@ import scala.collection.mutable.HashMap
 
 case class Movies(id:Int, name:String, status:String) extends ConnectToCassandra
 case class Metrics(USERNAME:String, CPU_USAGE:String, VALUE:String, DATE_AND_TIME:String, IP_AD:String) extends ConnectToCassandra
+case class Devices(IP_AD:String) extends ConnectToCassandra
+case class Multi_Metrics(IP_ADD:String, metrics: List[Metrics]) extends ConnectToCassandra
 
 object ConnectToCassandra {
 
@@ -60,7 +62,7 @@ object ConnectToCassandra {
     }
     finally {
       close()
-      println("Done! demo")
+      println("Done! demo movies")
       //println(session)
     }
     return movies
@@ -71,7 +73,6 @@ object ConnectToCassandra {
     try {
       val keyspace = "jaibalayya"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      println(session)
       val cql = "SELECT * FROM metrics1"
       val resultSet = session.execute( cql )
       val itr = JavaConversions.asScalaIterator(resultSet.iterator)
@@ -88,19 +89,50 @@ object ConnectToCassandra {
     }
     finally {
       close()
-      println("Done! demo")
+      println("Done! demo empty")
       //println(session)
     }
     return metrics
   }
 
-  def getMetrics(ipadd:String): List[Metrics] = {
-    var metrics = List[Metrics]()
+  def getDevices(): List[Devices] = {
+    var metrics = List[Devices]()
     try {
       val keyspace = "jaibalayya"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      println(session)
-      val cql = "SELECT * FROM metrics1 where ipad ='"+ipadd+"'"
+      val cql = "SELECT DISTINCT ipad FROM metrics1"
+      val resultSet = session.execute( cql )
+      val itr = JavaConversions.asScalaIterator(resultSet.iterator)
+      itr.foreach( row => {
+        val ipad = row.getInet("ipad").toString.split("/");
+        metrics = metrics ::: List(Devices(ipad(1)))
+        //println(s"$idv $firstName $lastName")
+      })
+    }
+    finally {
+      close()
+      println("Done! demo devices")
+      //println(session)
+    }
+    return metrics
+  }
+  def getIP(ipaddd:String): String = {
+    var multiIPS = ipaddd.split(",")
+    for (ipadd <- multiIPS){
+      println(ipadd)
+    }
+    return ipaddd
+  }
+
+  def getMetrics(ipaddd:String, startDate:String, endDate:String): List[Multi_Metrics] = {
+    var multi_metrics = List[Multi_Metrics]()
+    var multiIPS = ipaddd.split(",")
+    for (ipadd <- multiIPS) {
+      var metrics = List[Metrics]()
+    try {
+      val keyspace = "jaibalayya"
+      val (cluster, session) = setup(keyspace, "localhost", 9042)
+      val cql = "SELECT * FROM metrics1 where ipad ='"+ipadd+"' AND date >='"+startDate+"' AND date <='"+endDate+"'"
       val resultSet = session.execute( cql )
       val itr = JavaConversions.asScalaIterator(resultSet.iterator)
       itr.foreach( row => {
@@ -114,12 +146,18 @@ object ConnectToCassandra {
         //println(s"$idv $firstName $lastName")
       })
     }
+      catch {
+        case unknown: Throwable => println("Got this unknown exception: " + unknown)
+      }
     finally {
       close()
-      println("Done! demo")
+      println("Done! demo metrics")
+      println(ipadd)
       //println(session)
     }
-    return metrics
+      multi_metrics = multi_metrics ::: List(Multi_Metrics(ipadd, metrics));
+    }
+    return multi_metrics
   }
 
   def addMovie(idd:Int, movieName:String, movieStatus:String) = {
@@ -153,6 +191,8 @@ object ConnectToCassandra {
   private implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[ConnectToCassandra])))
   def toJSON(movie: List[Movies]) = Serialization.writePretty(movie)
   def toJSONM(metric:List[Metrics])=Serialization.writePretty(metric)
+  def toJSOND(metric:List[Devices])=Serialization.writePretty(metric)
+  def toJSONMM(metric:List[Multi_Metrics])=Serialization.writePretty(metric)
 }
 
 trait ConnectToCassandra

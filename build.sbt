@@ -1,4 +1,6 @@
 import AssemblyKeys._
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
 
 assemblySettings
 
@@ -13,6 +15,8 @@ jarName in assembly := "spray-cassandra.jar"
 mainClass in (Compile, assembly) := Some("com.roblayton.spray.Main")
 
 resolvers += "spray repo" at "http://repo.spray.io"
+
+enablePlugins(JavaAppPackaging)
 
 val sprayVersion = "1.3.1"
 val cassandraDriverVersion = "3.0.0"
@@ -44,4 +48,4 @@ mergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
