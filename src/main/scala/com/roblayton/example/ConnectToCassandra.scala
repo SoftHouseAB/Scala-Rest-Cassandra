@@ -140,12 +140,38 @@ object ConnectToCassandra {
       val keyspace = "jaibalayya"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
       val intCpu = metric.CPU_USAGE.toInt
-      val cql = "INSERT INTO metrics (cpu, username, value, date) VALUES ("+intCpu+",'"+metric.USERNAME+"','"+metric.VALUE+"','"+metric.DATE_AND_TIME+"')"
+      val cql = "INSERT INTO metrics1 (ipad, date, cpu, username, value) VALUES ("+metric.IP_AD+","+metric.DATE_AND_TIME+","+intCpu+",'"+metric.USERNAME+"','"+metric.VALUE+"')"
       val resultSet = session.execute( cql )
     }
     finally {
       close()
       println("Done!")
+    }
+  }
+
+  def delMetric(ip:String, date:String) = {
+    try {
+      val keyspace = "jaibalayya"
+      val (cluster, session) = setup(keyspace, "localhost", 9042)
+      val cql = "DELETE FROM metrics1 WHERE ipad='"+ip+"' and date='"+date+"'"
+      val resultSet = session.execute( cql )
+    }
+    finally {
+      close()
+      println("Done! delete metric")
+    }
+  }
+
+  def delDevice(ip:String) = {
+    try {
+      val keyspace = "jaibalayya"
+      val (cluster, session) = setup(keyspace, "localhost", 9042)
+      val cql = "DELETE FROM metrics1 WHERE ipad='"+ip+"'"
+      val resultSet = session.execute( cql )
+    }
+    finally {
+      close()
+      println("Done! delete device")
     }
   }
 

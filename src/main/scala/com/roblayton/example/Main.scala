@@ -57,6 +57,26 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      get {
+        path("metrics" / "delete") {
+          parameters("ip", "date") { (ip, date) =>
+            ConnectToCassandra.delMetric(ip, date)
+            complete {
+              "Device Deleted!"
+            }
+          }
+        }
+      } ~
+      get {
+        path("metrics" / "delete") {
+          parameter("ip") { (ip) =>
+            ConnectToCassandra.delDevice(ip)
+            complete {
+              "Device Deleted!"
+            }
+          }
+        }
+      } ~
       post {
         path("metrics" / "add") {
           entity(as[JObject]) { metricObj =>
