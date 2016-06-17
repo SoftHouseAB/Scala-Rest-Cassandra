@@ -46,9 +46,9 @@ object ConnectToCassandra {
   def getMetrics(): List[Metrics] = {
     var metrics = List[Metrics]()
     try {
-      val keyspace = "jaibalayya"
+      val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      val cql = "SELECT * FROM metrics1"
+      val cql = "SELECT * FROM metrics"
       val resultSet = session.execute( cql )
       val itr = JavaConversions.asScalaIterator(resultSet.iterator)
       itr.foreach( row => {
@@ -73,9 +73,9 @@ object ConnectToCassandra {
   def getDevices(): List[Devices] = {
     var metrics = List[Devices]()
     try {
-      val keyspace = "jaibalayya"
+      val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      val cql = "SELECT DISTINCT ipad FROM metrics1"
+      val cql = "SELECT DISTINCT ipad FROM metrics"
       val resultSet = session.execute( cql )
       val itr = JavaConversions.asScalaIterator(resultSet.iterator)
       itr.foreach( row => {
@@ -105,9 +105,9 @@ object ConnectToCassandra {
     for (ipadd <- multiIPS) {
       var metrics = List[Metrics]()
     try {
-      val keyspace = "jaibalayya"
+      val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      val cql = "SELECT * FROM metrics1 where ipad ='"+ipadd+"' AND date >='"+startDate+"' AND date <='"+endDate+"'"
+      val cql = "SELECT * FROM metrics where ipad ='"+ipadd+"' AND date >='"+startDate+"' AND date <='"+endDate+"'"
       val resultSet = session.execute( cql )
       val itr = JavaConversions.asScalaIterator(resultSet.iterator)
       itr.foreach( row => {
@@ -137,10 +137,10 @@ object ConnectToCassandra {
 
   def addMetric(metric:Metrics) = {
     try {
-      val keyspace = "jaibalayya"
+      val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
       val intCpu = metric.CPU_USAGE.toInt
-      val cql = "INSERT INTO metrics1 (ipad, date, cpu, username, value) VALUES ("+metric.IP_AD+","+metric.DATE_AND_TIME+","+intCpu+",'"+metric.USERNAME+"','"+metric.VALUE+"')"
+      val cql = "INSERT INTO metrics (ipad, date, cpu, username, value) VALUES ('"+metric.IP_AD+"','"+metric.DATE_AND_TIME+"',"+intCpu+",'"+metric.USERNAME+"','"+metric.VALUE+"')"
       val resultSet = session.execute( cql )
     }
     finally {
@@ -151,9 +151,9 @@ object ConnectToCassandra {
 
   def delMetric(ip:String, date:String) = {
     try {
-      val keyspace = "jaibalayya"
+      val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      val cql = "DELETE FROM metrics1 WHERE ipad='"+ip+"' and date='"+date+"'"
+      val cql = "DELETE FROM metrics WHERE ipad='"+ip+"' and date='"+date+"'"
       val resultSet = session.execute( cql )
     }
     finally {
@@ -164,9 +164,9 @@ object ConnectToCassandra {
 
   def delDevice(ip:String) = {
     try {
-      val keyspace = "jaibalayya"
+      val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
-      val cql = "DELETE FROM metrics1 WHERE ipad='"+ip+"'"
+      val cql = "DELETE FROM metrics WHERE ipad='"+ip+"'"
       val resultSet = session.execute( cql )
     }
     finally {
