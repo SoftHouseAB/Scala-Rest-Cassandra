@@ -23,9 +23,12 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
   implicit def json4sFormats: Formats = DefaultFormats
 
   startServer(interface = serviceHost, port = servicePort) {
+    //Headers to avoid the cross domain access errors
     respondWithHeaders(RawHeader("Access-Control-Allow-Origin", "*"),
                        RawHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE"),
                        RawHeader("Access-Control-Allow-Headers","X-Requested-With,Origin,Content-Type,X-Auth-Token")) {
+      //Rest endpoints
+      //Dummy route
       get {
         path("hello") {
           complete {
@@ -33,6 +36,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      //Gets metric details for a single or multiple IP's between given dates.
       get {
         path("metrics") {
           parameters("ip", "sdate", "edate") { (ip, sdate, edate) =>
@@ -42,6 +46,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      //Gets all the devices available from the database.
       get {
         path("metrics" / "devices") {
           complete {
@@ -49,6 +54,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      //gets the entire table
       get {
         path("metrics") {
           complete {
@@ -56,6 +62,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      //Deletes the data of a device with specific dates.
       delete {
         path("metrics" / "delete") {
           parameters("ip", "date") { (ip, date) =>
@@ -66,6 +73,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      //Deletes the entire data of the selected device.
       delete {
         path("metrics" / "delete") {
           parameter("ip") { (ip) =>
@@ -76,6 +84,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
+      //Stores the data into the database from the server.
       post {
         path("metrics" / "add") {
           entity(as[JObject]) { metricObj =>

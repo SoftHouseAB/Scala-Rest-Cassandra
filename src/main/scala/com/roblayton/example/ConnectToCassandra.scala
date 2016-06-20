@@ -13,6 +13,7 @@ import spray.json._
 import DefaultJsonProtocol._
 import scala.collection.mutable.HashMap
 
+//classes for a specific data for sending and receiving at the rest endpoints.
 case class Metrics(USERNAME:String, CPU_USAGE:String, DATE_AND_TIME:String, IP_AD:String, MEMORY:String, NETWORK_IN:String, NETWORK_OUT:String) extends ConnectToCassandra
 case class Devices(IP_AD:String) extends ConnectToCassandra
 case class Multi_Metrics(IP_ADD:String, metrics: List[Metrics]) extends ConnectToCassandra
@@ -39,6 +40,7 @@ object ConnectToCassandra {
     }
   }
 
+  //Gets entire table from the db.
   def getMetrics(): List[Metrics] = {
     var metrics = List[Metrics]()
     try {
@@ -52,6 +54,7 @@ object ConnectToCassandra {
         val newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm")
         val date = newDateFormat.format(row.getTimestamp("date")).toString
         val name = row.getString("username")
+        //IP address comes as /127.0.0.1 so split at /
         val ipad = row.getInet("ipad").toString.split("/")
         val memory = row.getInt("memory").toString
         val networkIn = row.getInt("networkin").toString
@@ -68,6 +71,7 @@ object ConnectToCassandra {
     return metrics
   }
 
+  //Gets all the unique IP address from the db.
   def getDevices(): List[Devices] = {
     var metrics = List[Devices]()
     try {
@@ -90,8 +94,10 @@ object ConnectToCassandra {
     return metrics
   }
 
+  //Gets the metrics for a single or multiple devices between given dates.
   def getMetrics(ipaddd:String, startDate:String, endDate:String): List[Multi_Metrics] = {
     var multi_metrics = List[Multi_Metrics]()
+    //ip address comes as string separated by ',' so split the string at , to get IP's
     var multiIPS = ipaddd.split(",")
     for (ipadd <- multiIPS) {
       var metrics = List[Metrics]()
@@ -128,6 +134,7 @@ object ConnectToCassandra {
     return multi_metrics
   }
 
+  //Adds the metrics that was received from the server.
   def addMetric(metric:Metrics) = {
     try {
       val keyspace = "servermetrics"
@@ -145,6 +152,7 @@ object ConnectToCassandra {
     }
   }
 
+  //deletes the data of a device at a given date.
   def delMetric(ip:String, date:String) = {
     try {
       val keyspace = "servermetrics"
@@ -158,6 +166,7 @@ object ConnectToCassandra {
     }
   }
 
+  //deletes the entire data of a device.
   def delDevice(ip:String) = {
     try {
       val keyspace = "servermetrics"
@@ -171,6 +180,7 @@ object ConnectToCassandra {
     }
   }
 
+  //converting the lists to JSON.
   private implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[ConnectToCassandra])))
   def toJSONM(metric:List[Metrics])=Serialization.writePretty(metric)
   def toJSOND(metric:List[Devices])=Serialization.writePretty(metric)
