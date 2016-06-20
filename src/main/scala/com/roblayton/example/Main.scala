@@ -1,12 +1,11 @@
 package com.roblayton.spray
 
 import akka.actor.ActorSystem
-import com.roblayton.example.{ConnectToCassandra, Metrics, Movies}
+import com.roblayton.example.{ConnectToCassandra, Metrics}
 import spray.routing.SimpleRoutingApp
 import spray.routing.Route
-import spray.http.MediaTypes
+import spray.http._
 import spray.httpx.Json4sSupport
-import spray.http.{AllOrigins, HttpMethod, HttpMethods, HttpResponse}
 import spray.http.HttpHeaders._
 import spray.http.HttpMethods._
 import spray.routing._
@@ -23,10 +22,10 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
   // globally override the default format to respond with Json
   implicit def json4sFormats: Formats = DefaultFormats
 
-  var fragments = Fragment.fragments
-
   startServer(interface = serviceHost, port = servicePort) {
-    respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+    respondWithHeaders(RawHeader("Access-Control-Allow-Origin", "*"),
+                       RawHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE"),
+                       RawHeader("Access-Control-Allow-Headers","X-Requested-With,Origin,Content-Type,X-Auth-Token")) {
       get {
         path("hello") {
           complete {
@@ -36,7 +35,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
       } ~
       get {
         path("metrics") {
-          parameter("ip", "sdate", "edate") { (ip, sdate, edate) =>
+          parameters("ip", "sdate", "edate") { (ip, sdate, edate) =>
             complete {
               ConnectToCassandra.toJSONMM(ConnectToCassandra.getMetrics(ip, sdate, edate))
             }
@@ -57,7 +56,7 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
-      get {
+      delete {
         path("metrics" / "delete") {
           parameters("ip", "date") { (ip, date) =>
             ConnectToCassandra.delMetric(ip, date)
@@ -67,13 +66,13 @@ object Main extends App with SimpleRoutingApp with Configuration with Json4sSupp
           }
         }
       } ~
-      get {
+      delete {
         path("metrics" / "delete") {
           parameter("ip") { (ip) =>
             ConnectToCassandra.delDevice(ip)
-            complete {
-              "Device Deleted!"
-            }
+              complete {
+                "Device Deleted!"
+              }
           }
         }
       } ~

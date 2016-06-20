@@ -4,20 +4,16 @@ package com.roblayton.example
   * Created by jaswath on 25-05-2016.
   */
 import java.text.SimpleDateFormat
-
 import com.datastax.driver.core.{Cluster, Session}
-
 import scala.collection.JavaConversions
 import org.json4s.native.{Json, Serialization}
 import org.json4s.native.Serialization._
 import org.json4s.ShortTypeHints
 import spray.json._
 import DefaultJsonProtocol._
-
 import scala.collection.mutable.HashMap
 
-case class Movies(id:Int, name:String, status:String) extends ConnectToCassandra
-case class Metrics(USERNAME:String, CPU_USAGE:String, VALUE:String, DATE_AND_TIME:String, IP_AD:String) extends ConnectToCassandra
+case class Metrics(USERNAME:String, CPU_USAGE:String, DATE_AND_TIME:String, IP_AD:String, MEMORY:String, NETWORK_IN:String, NETWORK_OUT:String) extends ConnectToCassandra
 case class Devices(IP_AD:String) extends ConnectToCassandra
 case class Multi_Metrics(IP_ADD:String, metrics: List[Metrics]) extends ConnectToCassandra
 
@@ -56,9 +52,11 @@ object ConnectToCassandra {
         val newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm")
         val date = newDateFormat.format(row.getTimestamp("date")).toString
         val name = row.getString("username")
-        val value = row.getString("value")
-        val ipad = row.getInet("ipad").toString.split("/");
-        metrics = metrics ::: List(Metrics(name, cpu, value, date, ipad(1)))
+        val ipad = row.getInet("ipad").toString.split("/")
+        val memory = row.getInt("memory").toString
+        val networkIn = row.getInt("networkin").toString
+        val networkOut = row.getInt("networkout").toString
+        metrics = metrics ::: List(Metrics(name, cpu, date, ipad(1), memory, networkIn, networkOut))
         //println(s"$idv $firstName $lastName")
       })
     }
@@ -91,13 +89,6 @@ object ConnectToCassandra {
     }
     return metrics
   }
-  def getIP(ipaddd:String): String = {
-    var multiIPS = ipaddd.split(",")
-    for (ipadd <- multiIPS){
-      println(ipadd)
-    }
-    return ipaddd
-  }
 
   def getMetrics(ipaddd:String, startDate:String, endDate:String): List[Multi_Metrics] = {
     var multi_metrics = List[Multi_Metrics]()
@@ -115,9 +106,11 @@ object ConnectToCassandra {
         val newDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm")
         val date = newDateFormat.format(row.getTimestamp("date")).toString
         val name = row.getString("username")
-        val value = row.getString("value")
-        val ipad = row.getInet("ipad").toString.split("/");
-        metrics = metrics ::: List(Metrics(name, cpu, value, date, ipad(1)))
+        val ipad = row.getInet("ipad").toString.split("/")
+        val memory = row.getInt("memory").toString
+        val networkIn = row.getInt("networkin").toString
+        val networkOut = row.getInt("networkout").toString
+        metrics = metrics ::: List(Metrics(name, cpu, date, ipad(1), memory, networkIn, networkOut))
         //println(s"$idv $firstName $lastName")
       })
     }
@@ -140,7 +133,10 @@ object ConnectToCassandra {
       val keyspace = "servermetrics"
       val (cluster, session) = setup(keyspace, "localhost", 9042)
       val intCpu = metric.CPU_USAGE.toInt
-      val cql = "INSERT INTO metrics (ipad, date, cpu, username, value) VALUES ('"+metric.IP_AD+"','"+metric.DATE_AND_TIME+"',"+intCpu+",'"+metric.USERNAME+"','"+metric.VALUE+"')"
+      val intMemory = metric.MEMORY.toInt
+      val intNetworkIn = metric.NETWORK_IN.toInt
+      val intNetworkOut = metric.NETWORK_OUT.toInt
+      val cql = "INSERT INTO metrics (ipad, date, cpu, username, memory, networkin, networkout) VALUES ('"+metric.IP_AD+"','"+metric.DATE_AND_TIME+"',"+intCpu+",'"+metric.USERNAME+"',"+intMemory+","+intNetworkIn+","+intNetworkOut+")"
       val resultSet = session.execute( cql )
     }
     finally {
